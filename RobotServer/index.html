@@ -1,0 +1,62 @@
+<html>
+<body>
+  <div id="feld" style="position:relative; width:200px; height:300px;
+    background:blue">
+    <div id="pendel" style="position:absolute; width:20px; height:20px;
+      background:red; border-radius:100%"></div>
+  </div>
+  <script type="text/javascript">//<![CDATA[
+    var js = ["scripts/virtualjoystick.js", "scripts/autobahn.min.jgz"];
+    for (var i = 0, l = js.length; i < l; i++) {
+     document.getElementsByTagName("head")[0].innerHTML += ("<script src=\"" + js[i] + "\" type=\"text/javascript\"></scr" + "ipt>");
+    }
+   //]]></script>
+    var feld = document.getElementById('feld');
+    var pendel = document.getElementById('pendel');
+
+    var maxW = feld.clientWidth - pendel.clientWidth;
+    var maxH = feld.clientHeight - pendel.clientHeight;
+
+    var joystick = new VirtualJoystick({
+      container: feld,
+      strokeStyle: 'cyan',
+      mouseSupport: true,
+      limitStickTravel: true,
+      stickRadius: 90
+    });
+
+    function handleJoystick() {
+      var x = joystick.deltaY();
+      var y = joystick.deltaX();
+
+      x += 90;
+      y += 90;
+      joycmd(x,y)
+      pendel.style.left = (maxW*y/180 - pendel.clientWidth/2) + "px";
+      pendel.style.top  = (maxH*x/180 - pendel.clientHeight/2) + "px";
+    }
+
+    setInterval(handleJoystick, 1000/10);
+    
+    function joycmd(x,y){
+				webSocket.send(JSON.stringify({X:"+x+",Y:"+y+"}));
+			}
+	var webSocket;
+	function ws(){
+				webSocket=webSocket = new WebSocket("ws://"+window.location.hostname+":9090/");
+				webSocket.onopen=function(){
+					console.log("opened");
+				}
+				webSocket.onmessage=function(data){
+					console.log("Someone sent: ", data);
+				}
+				webSocket.ondata=function(){
+					console.log("msg received");
+				}
+			}
+	$(document).ready(function(){
+	ws();
+	});
+  </script>
+</body>
+</html>
