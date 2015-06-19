@@ -5,12 +5,11 @@
     <div id="pendel" style="position:absolute; width:20px; height:20px;
       background:red; border-radius:100%"></div>
   </div>
-  <script type="text/javascript">//<![CDATA[
+  <script type="text/javascript">
     var js = ["scripts/virtualjoystick.js", "scripts/autobahn.min.jgz"];
     for (var i = 0, l = js.length; i < l; i++) {
      document.getElementsByTagName("head")[0].innerHTML += ("<script src=\"" + js[i] + "\" type=\"text/javascript\"></scr" + "ipt>");
     }
-   //]]></script>
     var feld = document.getElementById('feld');
     var pendel = document.getElementById('pendel');
 
