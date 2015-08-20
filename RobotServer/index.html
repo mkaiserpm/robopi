@@ -1,15 +1,29 @@
 <html>
+
+<head>
+  <!-- This tells the browser how to read the document. -->
+  <meta charset="utf-8">
+
+  <!-- Tells the browser what the title of this page should be. -->
+  <title>RoboControl</title>
+
+</head>
 <body>
   <div id="feld" style="position:relative; width:200px; height:300px;
     background:blue">
     <div id="pendel" style="position:absolute; width:20px; height:20px;
       background:red; border-radius:100%"></div>
   </div>
+  <script src="scripts/virtualjoystick.js"></script>
+  <script src="scripts/autobahn.min.jgz"></script>
   <script type="text/javascript">
+    /*
     var js = ["scripts/virtualjoystick.js", "scripts/autobahn.min.jgz"];
     for (var i = 0, l = js.length; i < l; i++) {
      document.getElementsByTagName("head")[0].innerHTML += ("<script src=\"" + js[i] + "\" type=\"text/javascript\"></scr" + "ipt>");
     }
+    */
+
     var feld = document.getElementById('feld');
     var pendel = document.getElementById('pendel');
 
@@ -35,15 +49,16 @@
       pendel.style.top  = (maxH*x/180 - pendel.clientHeight/2) + "px";
     }
 
-    setInterval(handleJoystick, 1000/10);
     
+    var webSocket;
     function joycmd(x,y){
 				webSocket.send(JSON.stringify({X:"+x+",Y:"+y+"}));
 			}
-	var webSocket;
+	
 	function ws(){
-				webSocket=webSocket = new WebSocket("ws://"+window.location.hostname+":9090/");
-				webSocket.onopen=function(){
+				//webSocket = new WebSocket("ws://"+window.location.hostname+":9090/");
+				webSocket = new WebSocket("ws://localhost:9090/");
+        webSocket.onopen=function(){
 					console.log("opened");
 				}
 				webSocket.onmessage=function(data){
@@ -53,9 +68,11 @@
 					console.log("msg received");
 				}
 			}
-	$(document).ready(function(){
-	ws();
-	});
+	//$(document).ready(function(){
+	//ws();
+	//});
+  ws();
+  setInterval(handleJoystick, 1000/10);
   </script>
 </body>
 </html>
