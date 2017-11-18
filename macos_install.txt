@@ -1,0 +1,9 @@
+#Virtualenv and Eclipse Pydev environment
+sudo port install pip
+sudo pip install virtualenvwrapper
+#Pydev (within Eclipse Install new software)
+http://pydev.org/updates
+#in .bash_profile
+export WORKON_HOME=$HOME/virtualenvs
+source /opt/local/Library/Frameworks/Python.framework/Versions/Current/bin/virt$
+

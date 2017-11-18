@@ -1,0 +1,7 @@
+TCserver - needs to be put on the Raspberry Pi and started there
+
+TCclient-debug.apk - install on any device with at least Android 4.1
+  must enable installation of non-market apps
+
+(C) 2014 Dr. Alexander K. Seewald, Seewald Solutions
+More details see http://tc.seewald.at

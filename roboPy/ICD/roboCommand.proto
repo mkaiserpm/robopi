@@ -1,0 +1,36 @@
+// Author: Mario Kaiser
+//
+// Protobuf definition file for the RoboControl service.
+
+package roboICD;
+
+option java_package = "com.googlecode.protobuf.socketrpc.robocontrol";
+option java_generic_services = true;
+option py_generic_services = true;
+
+message Lighting
+{
+   required bool cam =1;
+   required bool greenLight =2;
+   required bool redLight =3;
+}
+
+message CommandRequest
+{
+   optional int32 portMotorSpd = 1;
+   optional int32 starMotorSpd = 2;
+   optional Lighting lightCmd = 3;
+   optional bool camOn = 4; 
+}
+
+message CommandResponse 
+{
+  required bool received = 1;
+  required Lighting lightState = 2;
+  required bool camOn = 3;
+}
+
+service CommandService 
+{
+  rpc Command(CommandRequest) returns(CommandResponse);
+}

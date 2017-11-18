@@ -1,0 +1,16 @@
+sudo apt-get install libnss-mdns
+
+#pigpio
+git clone https://github.com/joan2937/pigpio
+cd pigpio
+make
+sudo make install
+
+#qt4
+sudo apt-get install qt4-dev-tools pyqt4-dev-tools qt4-designer
+
+#Diable powerdown WLAN
+sudo nano /etc/modprobe.d/8192cu.conf
+# Disable power management
+options 8192cu rtw_power_mgnt=0 rtw_enusbss=0
+
