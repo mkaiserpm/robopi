@@ -63,8 +63,9 @@ class L298NMotor():
 def steeringtest(m):
     for i in range(5):
         m.forward()
-        time.sleep(1)
+        time.sleep(0.5)
         m.reverse()
+        time.sleep(0.5)
 
 if __name__ == '__main__':
     
