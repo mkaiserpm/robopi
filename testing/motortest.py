@@ -62,11 +62,12 @@ class L298NMotor():
 
 if __name__ == '__main__':
     
+    GPIO.setmode(GPIO.BOARD)
     mode=GPIO.getmode()
     print(" mode ="+str(mode))
     GPIO.cleanup()
     
-    GPIO.setmode(GPIO.BOARD)
+    
     #deinfe pin numbers
     M1EN = 29
     M1IN1 = 7
