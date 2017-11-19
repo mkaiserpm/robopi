@@ -60,6 +60,12 @@ class L298NMotor():
         self.gpio_.output(self.pin_input1,in1)
         self.gpio_.output(self.pin_input2,in2)
 
+def steeringtest(m):
+    for i in range(5):
+        m.forward()
+        time.sleep(1)
+        m.reverse()
+
 if __name__ == '__main__':
     
     GPIO.setmode(GPIO.BOARD)
@@ -99,10 +105,9 @@ if __name__ == '__main__':
         time.sleep(sltime)
         m.rollout()
 
-    print("All Motors forward")
-    for m in allm:
-        m.forward()
-    time.sleep(sltime)
+    print("Steering Test Motors forward")
+    m1.forward()
+    steeringtest(m2)
     for m in allm:
         m.stop()
 
