@@ -63,7 +63,7 @@ class L298NMotor():
 if __name__ == '__main__':
     
     mode=GPIO.getmode()
-    print " mode ="+str(mode)
+    print(" mode ="+str(mode))
     GPIO.cleanup()
     
     GPIO.setmode(GPIO.BOARD)
