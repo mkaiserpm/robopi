@@ -1,0 +1,428 @@
+#!/usr/bin/python
+__author__ = 'Leon Schwarze'
+#Licensed under the GNU GPL V2 License
+#(C) Leon Schwarze
+#Adapted from Ryanteck LTD.
+
+#importing some very important stuff
+import time
+import RPi.GPIO as GPIO
+import sys
+import subprocess
+
+if sys.argv is None:
+	startarg = False
+else:
+	startarg = True
+print("PiCar 1.0 - Developed by Leon Schwarze under GNU-GPL Version 2 license")
+print("This commit is verified with a valid GPG key. Test")
+print
+print("Initializing...")
+print("[Done]")
+print
+print("Welcome!")
+print
+print("Setting up GPIO pins...")
+
+#Setup GPIO
+GPIO.setmode(GPIO.BCM) #Set the pin numbers to Broadcom Mode
+
+#Check if started in debug mode (will be included later; buggy!)
+#if startarg:
+#	if sys.argv[1] == "--debug":
+#		GPIO.setwarnings(True) #Show all errors
+	#if sys.argv[2] == "--debug":
+	#	GPIO.setwarnings(True)
+#	else:
+#		GPIO.setwarnings(False) #Ignore any errors
+#else:
+#	pass
+
+GPIO.setwarnings(False)
+#Assign variables to pins
+motor1_a = 17
+motor1_b = 18
+motor2_a = 22
+motor2_b = 23
+lighting = 24
+usonic_trig = 25
+usonic_echo = 27
+navix_directions = []
+
+#Set up the outputs
+GPIO.setup(motor1_a,GPIO.OUT) #Set 17 as output (Motor 1 A)
+GPIO.setup(motor1_b,GPIO.OUT) #Set 18 as output (Motor 1 B)
+GPIO.setup(motor2_a,GPIO.OUT) #Set 22 as output (Motor 2 A)
+GPIO.setup(motor2_b,GPIO.OUT) #Set 23 as output (Motor 2 B)
+GPIO.setup(lighting, GPIO.OUT) #Set up lighting output
+GPIO.setup(usonic_trig, GPIO.OUT)
+GPIO.setup(usonic_echo, GPIO.IN)
+print("[Done]")
+print("Starting LumiX engine...")
+GPIO.output(lighting, True)
+print("[Done]")
+print("Setting up NaviX Comeback...")
+navix_directions.append("end")
+status = 1
+print("[Done]")
+print
+#Check if started in stealth mode (will be included later; buggy!)
+#if startarg:
+#	if sys.argv[1] == "--stealth":
+#		print("Successful started in stealth-mode. WARNING: Visual feedback is not possible in stealth mode!")
+#	else:
+#		print("Starting lighting engine LumiX")
+#		GPIO.output(lighting, True)
+#else:
+#	pass
+
+#Define basic selftest
+def selftest():
+	print("Driving forwards...")
+	GPIO.output(motor1_a, True)
+	time.sleep(1)
+	GPIO.output(motor1_a, False)
+	print("[Done]")
+	time.sleep(1)
+	print("Driving backwards...")
+	GPIO.output(motor1_b, True)
+	time.sleep(1)
+	GPIO.output(motor1_b, False)
+	print("[Done]")
+	time.sleep(1)
+	print("Turning left...")
+	GPIO.output(motor2_a, True)
+	time.sleep(1)
+	GPIO.output(motor2_a, False)
+	print("[Done]")
+	time.sleep(1)
+	print("Turning right...")
+	GPIO.output(motor2_b, True)
+	time.sleep(1)
+	GPIO.output(motor2_b, False)
+	print("[Done]")
+	time.sleep(1)
+	print("Checking ultrasonic sensor...")
+	navix()
+	print "[Done] Current distance: %s" % (navix_distance)
+	print("Checking lighting...")
+	GPIO.output(lighting, True)
+	time.sleep(1)
+	GPIO.output(lighting, False)
+	print("[Done] Lighting checked.")
+	print("Checking network status...")
+	proc = subprocess.Popen(["ping -c 2 www.google.com"], stdout = subprocess.PIPE, shell = True)
+	if "0% packet loss" in proc.stdout.read():
+		print "[Done] PiCar is connected to the internet." 
+	else:
+		print("[Error] PiCar is not connected to the internet.")
+	print("[OK] Finished selftest without any errors")
+	return 0
+
+#Define functions
+#LumiX engine
+def lumix(arg):
+	if arg == "blink":
+		GPIO.output(lighting, False)
+		GPIO.output(lighting, True)
+		GPIO.output(lighting, False)
+		GPIO.output(lighting, True)
+		return 0
+	elif arg == "stealth":
+		GPIO.output(lighting, False)
+		return 0
+	elif arg == "light":
+		GPIO.output(lighting, True)
+		return 0
+	else:
+		pass
+		return 0
+#MoviX functions
+def forwards(dur):
+	GPIO.output(motor1_a, True)
+	time.sleep(dur)
+	GPIO.output(motor1_a, False)
+	return 0
+
+def backwards(dur):
+	GPIO.output(motor1_b, True)
+	time.sleep(dur)
+	GPIO.output(motor1_b, False)
+	return 0	
+
+def leftforwards(dur):
+	GPIO.output(motor1_a, True)
+	GPIO.output(motor2_a, True)
+	time.sleep(dur)
+	GPIO.output(motor1_a, False)
+	time.sleep(0.5)
+	GPIO.output(motor2_a, False)
+	return 0
+
+def rightforwards(dur):
+	GPIO.output(motor1_a, True)
+	GPIO.output(motor2_b, True)
+	time.sleep(dur)
+	GPIO.output(motor1_a, False)
+	time.sleep(0.5)
+	GPIO.output(motor2_b, False)
+	return 0	
+
+def rightbackwards(dur):
+	GPIO.output(motor1_b, True)
+	GPIO.output(motor2_b, True)
+	time.sleep(dur)
+	GPIO.output(motor1_b, False)
+	time.sleep(0.5)
+	GPIO.output(motor2_b, False)
+	return 0
+	
+
+def leftbackwards(dur):
+	GPIO.output(motor1_b, True)
+	GPIO.output(motor2_a, True)
+	time.sleep(dur)
+	GPIO.output(motor1_b, False)
+	time.sleep(0.5)
+	GPIO.output(motor2_a, False)
+	return 0
+	
+#NaviX functions
+def auto():
+	i = 1
+	print("Measuring current distance...")
+	navix()
+	print("[Done]")
+	navix_validation = raw_input("Please confirm autonomous drive by pressing y or quit with q: ")
+	while navix_validation != "q":
+		if i < 6:
+			if navix_distance > 50:
+				print navix_distance
+				forwards(1)
+				i = i + 1
+				navix()
+			if navix_distance < 50:
+				print navix_distance
+				backwards(1)
+				navix()
+				print navix_distance
+				while navix_distance < 70:
+					backwards(1)
+					navix()
+					print navix_distance
+				leftforwards(1.5)
+				i = i + 1
+				navix()
+		if i == 6:
+			navix_validation = raw_input("Please confirm autonomous drive by pressing y or quit with q: ")
+			if navix_validation == "y":
+				i = 1
+				continue
+			else:
+				break  
+	return 0
+
+def navix():
+	#Measuring time 
+	GPIO.output(usonic_trig, False)
+	time.sleep(2)
+	GPIO.output(usonic_trig, True)
+	time.sleep(0.00001)
+	GPIO.output(usonic_trig, False)
+
+	while GPIO.input(usonic_echo)==0:
+  		pulse_start = time.time()
+
+	while GPIO.input(usonic_echo)==1:
+ 		pulse_end = time.time()
+
+ 	#Calculating distance	
+ 	pulse_duration = pulse_end - pulse_start
+	distance = pulse_duration * 17150
+	distance = round(distance, 2)
+	global navix_distance
+	navix_distance = distance
+	return 0
+
+def turnover(status):
+	print("Measuring current distance...")
+	navix()
+	if navix_distance < 70:
+		print("[Error] Not enough space!")
+		return 1
+	else:
+		print("Turning over...")
+		leftbackwards(1)
+		time.sleep(1)
+		rightforwards(1)
+		time.sleep(1)
+		leftbackwards(1)
+		time.sleep(1)
+		rightforwards(1)
+		time.sleep(1)
+		leftbackwards(1)
+		time.sleep(1)
+		print("[Done]")
+		return 0
+
+def comeback(option):
+	if option == "normal":
+		print("Analyzing directions...")
+		print("[Done]")
+		status = turnover(0)
+		if status == 0:
+			print("Executing comeback procedure...")
+			while navix_directions[-1] != "end":
+				step = navix_directions.pop()
+				if step == "forwards":
+					forwards(1)
+					time.sleep(1)
+				elif step == "backwards":
+					backwards(1)
+					time.sleep(1)
+				elif step == "left forwards":
+					leftforwards(1)
+					time.sleep(1)
+				elif step == "right forwards":
+					rightforwards(1)
+					time.sleep(1)
+				elif step == "left backwards":
+					leftbackwards(1)
+					time.sleep(1)
+				elif step == "right backwards":
+					rightbackwards(1)
+					time.sleep(1)
+				else:
+					pass
+				print("[Done]")
+				return 0	
+		else:
+			print("[Error] The turnover function returned an error.")
+			return 0	
+	elif option == "clear":
+		print("Clearing directions...")
+		del navix_directions[:]
+		navix_directions.append("end")
+		print("[Done]")
+		#command == raw_input("?")
+		return 0
+	else:
+		print("[Error] Invalid option!")
+		return 0
+	
+
+#PiCar system processes
+def netstat():
+	print("Checking network status...")
+ 	proc = subprocess.Popen(["ping -c 2 www.google.com"], stdout = subprocess.PIPE, shell = True)
+ 	if "0% packet loss" in proc.stdout.read():
+ 		picar_netstat = "online"
+ 		print("[Done] PiCar is connected to the internet.")
+ 	else:
+ 		picar_netstat = "offline"
+ 		print("[Error] PiCar is not connected to the internet.")
+ 	return 0
+
+def help():
+	print("PiCar 0.4beta - Help")
+	print("====================")
+	print
+	print("DRIVING")
+	print("forwards - moves your car forwards")
+	print("backwards - moves your car backwards")
+	print("left forwards - moves your car left forwards")
+	print("right forwards - moves your car right forwards")
+	print("For turning backwards use the same pattern with backwards")
+	print
+	print("NAVIX")
+	print("distance - shows the current distance to the next object using the ultrasonic sensor")
+	print("auto - activates NaviX autonomous drive")
+	print("turn over - turns the vehicle by 180 degrees")
+	print("come back - returns the vehicle to its starting position")
+	print("clear directions - deletes the directions stored for NaviX Comeback")
+	print
+	print("SYSTEM")
+	print("stealth - the lighting is switched off")
+	print("light - the lighting is switched on")
+	print("selftest - for testing the correct wiring of your car")
+	print("network status - checks the internet connection of the vehicle")
+	print("update - starts the updating process")
+	print("help - shows this overview")
+	print("quit - quits this application")
+	return 0
+
+def update():
+	print("Executing updater...")
+	proc = subprocess.Popen("./updater.sh")
+	print("Terminating PiCar. Please restart after updating process.")
+	return 0
+
+
+#Open command interface
+command = raw_input("?")	
+while command != "quit":
+	if command == "forwards":
+		forwards(1)
+		navix_directions.append("forwards")
+		command = raw_input("?")
+	elif command == "backwards":
+		backwards(1)
+		navix_directions.append("backwards")
+		command = raw_input("?")
+	elif command == "left forwards":
+		leftforwards(1)
+		navix_directions.append("right forwards")
+		command = raw_input("?")
+	elif command == "right forwards":
+		rightforwards(1)
+		navix_directions.append("left forwards")
+		command = raw_input("?")
+	elif command == "right backwards":
+		rightbackwards(1)
+		navix_directions.append("left backwards")
+		command = raw_input("?")
+	elif command == "left backwards":
+		leftbackwards(1)
+		navix_directions.append("right backwards")
+		command = raw_input("?")
+	elif command == "selftest":
+		selftest()
+		command = raw_input("?")
+	elif command == "help":
+		help()
+		command = raw_input("?")
+	elif command == "distance":
+		navix()
+		print navix_distance
+		command = raw_input("?")
+	elif command == "stealth":
+		lumix("stealth")
+		command = raw_input("?")
+	elif command == "light":
+		lumix("light")
+		command = raw_input ("?")
+	elif command == "auto":
+		auto()
+		command = raw_input("?")
+	elif command == "update":
+		update()
+		break
+	elif command == "turn over":
+		turnover(1)
+		command = raw_input("?")
+	elif command == "come back":
+		comeback("normal")
+		command = raw_input("?")
+	elif command == "clear directions":
+		comeback("clear")
+		command = raw_input("?")
+	elif command == "network status":
+		netstat()
+		command = raw_input("?")
+	else:
+		lumix("blink")
+		print("[ERROR] Invalid input, please try again.")
+		command = raw_input("?")
+
+print("Terminating PiCar...")
+print("[Done]")
