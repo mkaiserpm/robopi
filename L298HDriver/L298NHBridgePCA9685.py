@@ -16,7 +16,7 @@
 # der GPIO Pins des Raspberry Pi ermoeglicht.
 from __future__ import division
 import RPi.GPIO as io
-io.setmode(io.BCM)
+io.setmode(io.BOARD)
 
 
 import time
@@ -55,10 +55,10 @@ io.setwarnings(False)
 
 # --- START KONFIGURATION GPIO Adressen ---
 ##ENA = 20
-IN1 = 6
-IN2 = 13
-IN3 = 19
-IN4 = 26
+IN1 = 7
+IN2 = 11
+IN3 = 13
+IN4 = 15
 ##ENB = 21
 # --- ENDE KONFIGURATION GPIO Adressen ---
 
