@@ -1,6 +1,7 @@
 
 import donkeycar as dk
 import time
+#from math import abs,min
 
 class L298NBridge:
     def __init__(self,pin1,pin2,gpio_):
@@ -17,10 +18,12 @@ class L298NBridge:
     def setForward(self):
         self.gpio.output(self.pin1,False)
         self.gpio.output(self.pin2,True)
+        #print("Motor forward ({},{})".format(self.pin1,self.pin2))
         
     def setReverse(self):
         self.gpio.output(self.pin1,True)
         self.gpio.output(self.pin2,False)
+        #print("Motor reverse ({},{})".format(self.pin1,self.pin2))
         
     def setZero(self):
         self.gpio.output(self.pin1,False)
@@ -39,10 +42,11 @@ class PCA9685L298N:
         # Initialise the PCA9685 using the default address (0x40).
         self.pwm = arda
         self.channel = channel
-        print("My channel: {}".format(channel))
+        print("My channel: {}".format(self.channel))
 
     def set_pulse(self, pulse):
         self.pwm.set_pwm(self.channel, 0, pulse) 
+        #print("Seeting Pulse/Chan: {}/{}".format(pulse,self.channel))
 
     def run(self, pulse):
         self.set_pulse(pulse)
@@ -70,6 +74,7 @@ class PWMSteeringL298N:
         self.left_pulse = left_pulse
         self.right_pulse = right_pulse
         self.MotorH = L298NBridge(pin1,pin2,io)
+        self.lastin = 0
 
 
     def run(self, angle):
@@ -78,7 +83,17 @@ class PWMSteeringL298N:
         #pulse = dk.utils.map_range(angle,
         #                        self.LEFT_ANGLE, self.RIGHT_ANGLE,
         #                        self.left_pulse, self.right_pulse)
+        #if angle == self.lastin:
+        #    return
         
+        #self.lastin = angle
+        #print("Angle in: {}".format(angle))        
+        if (angle == 0):
+            self.MotorH.setZero()
+            self.controller.set_pulse(0)
+            #print("Setting ZERO")
+            return
+            
         pulse = int(self.right_pulse * angle)
         
         '''
@@ -87,18 +102,15 @@ class PWMSteeringL298N:
             return
         '''
         if pulse > 0:
-            self.MotorH.setForward()
+            self.MotorH.setReverse() #positive angle is to the right
         
         else:
-            self.MotorH.setReverse()
-            pulse*=-1
-        #print("Angle: {}".format(angle))
-        #print("Pulse: {}".format(pulse))
-            
-        if pulse > self.right_pulse:
-            pulse = self.right_pulse           
+            self.MotorH.setForward()
 
-        self.controller.set_pulse(pulse)
+        #print("Pulse out: {}".format(pulse))
+        
+
+        self.controller.set_pulse(min(abs(pulse),abs(self.right_pulse)))
 
     def shutdown(self):
         self.run(0) #set steering straight
@@ -126,6 +138,7 @@ class PWMThrottleL298N:
         self.min_pulse = min_pulse
         self.zero_pulse = zero_pulse
         self.MotorH = L298NBridge(pin1,pin2,io)
+        self.lastin = 0
         
         
         #send zero pulse to calibrate ESC
@@ -134,33 +147,26 @@ class PWMThrottleL298N:
 
 
     def run(self, throttle):
+        #if throttle == self.lastin:
+        #    return
+        
+
+        #self.lastin = throttle
+        
+        #print("Throttle in: {}".format(throttle))
         if throttle == 0:
             self.emergencystop()
             return
         pulse = int(self.max_pulse * throttle)
-        '''
-        if throttle > 0:
-            pulse = dk.utils.map_range(throttle,
-                                    0, self.MAX_THROTTLE, 
-                                    self.zero_pulse, self.max_pulse)
-            self.MotorH.setForward()
-        else:
-            pulse = dk.utils.map_range(throttle,
-                                    self.MIN_THROTTLE, 0, 
-                                    self.min_pulse, self.zero_pulse)
-            self.MotorH.setReverse()
-        '''
+
         if pulse > 0:
             self.MotorH.setForward()
 
         else:
             self.MotorH.setReverse()
-            pulse *= -1
         
-        if pulse > self.max_pulse:
-            pulse = self.max_pulse               
-
-        self.controller.set_pulse(pulse)
+        self.controller.set_pulse(min(abs(pulse),abs(self.max_pulse)))
+        
     
     def emergencystop(self):
         self.MotorH.setZero()

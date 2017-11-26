@@ -42,7 +42,7 @@ def drive(cfg, model_path=None, use_joystick=False):
     #Initialize car
     V = dk.vehicle.Vehicle()
     cam = PiCamera(resolution=cfg.CAMERA_RESOLUTION)
-    #cam.rotation = 180 #flip camera
+    cam.camera.rotation = 180 #flip camera
     V.add(cam, outputs=['cam/image_array'], threaded=True)
     
     if use_joystick or cfg.USE_JOYSTICK_AS_DEFAULT:
