@@ -116,8 +116,8 @@ if __name__ == '__main__':
     M1IN1 = 7
     M1IN2 = 11
     #M2EN = 31
-    M2IN1 = 13
-    M2IN2 = 15
+    M2IN1 = 38
+    M2IN2 = 40
     
     sltime=5 #sec
     
